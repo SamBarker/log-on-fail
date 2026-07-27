@@ -77,7 +77,14 @@ public class CapturingAppender extends AbstractAppender {
     static void reset() {
         synchronized (LOCK) {
             EVENTS.clear();
-            INSTANCE = null;
+            if (INSTANCE != null) {
+                LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+                Configuration config = ctx.getConfiguration();
+                config.getRootLogger().removeAppender(INSTANCE.getName());
+                ctx.updateLoggers();
+                INSTANCE.stop();
+                INSTANCE = null;
+            }
         }
     }
 }
