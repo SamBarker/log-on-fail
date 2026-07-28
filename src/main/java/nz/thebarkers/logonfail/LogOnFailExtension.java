@@ -43,7 +43,6 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        CapturingAppender.ensureRegistered();
         store(context).put(START_KEY, System.nanoTime());
     }
 
@@ -51,7 +50,7 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
     public void testFailed(ExtensionContext context, Throwable cause) {
         long start = (long) store(context).get(START_KEY);
         long end = System.nanoTime();
-        List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
+        List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
         sink.report(testId(context), events);
     }
 

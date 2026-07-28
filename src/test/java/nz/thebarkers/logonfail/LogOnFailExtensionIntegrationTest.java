@@ -20,13 +20,12 @@ class LogOnFailExtensionIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        CapturingAppender.reset();
-        CapturingAppender.ensureRegistered();
+        EventBuffer.reset();
     }
 
     @AfterEach
     void tearDown() {
-        CapturingAppender.reset();
+        EventBuffer.reset();
     }
 
     @Test
@@ -35,7 +34,7 @@ class LogOnFailExtensionIntegrationTest {
         LOG.warn("captured warning");
         long end = System.nanoTime();
 
-        List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
+        List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
 
         assertTrue(events.stream()
                 .anyMatch(e -> e.formattedLine().contains("captured warning")));
@@ -48,7 +47,7 @@ class LogOnFailExtensionIntegrationTest {
         long start = System.nanoTime();
         long end = System.nanoTime();
 
-        List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
+        List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
 
         assertTrue(events.stream()
                 .noneMatch(e -> e.formattedLine().contains("before the window")));
@@ -60,7 +59,7 @@ class LogOnFailExtensionIntegrationTest {
         LOG.error("full end-to-end message");
         long end = System.nanoTime();
 
-        List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
+        List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
         assertFalse(events.isEmpty(), "Expected at least one captured event");
 
         new FileLogSink(tmp).report("SmokeTest#fileOutput", events);
@@ -76,7 +75,7 @@ class LogOnFailExtensionIntegrationTest {
         // nothing logged
         long end = System.nanoTime();
 
-        List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
+        List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
 
         assertTrue(events.isEmpty());
     }
