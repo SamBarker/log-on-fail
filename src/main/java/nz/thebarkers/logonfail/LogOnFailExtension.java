@@ -1,20 +1,22 @@
 package nz.thebarkers.logonfail;
 
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.TestWatcher;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.LoggingEvent;
 import org.slf4j.spi.LoggingEventAware;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.TestWatcher;
 
 import java.util.List;
 import java.util.Optional;
 
-public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
+public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, ParameterResolver {
 
     private static final ExtensionContext.Namespace NAMESPACE =
             ExtensionContext.Namespace.create(LogOnFailExtension.class);
-    private static final String START_KEY = "startNanos";
+    private static final String SELF_KEY = "self";
 
     private static final boolean LOGBACK_PRESENT;
 
@@ -29,18 +31,22 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
         LOGBACK_PRESENT = present;
     }
 
+    private final ThreadLocal<Long> startNanos = new ThreadLocal<>();
+
     @Override
     public void beforeEach(ExtensionContext context) {
         if (LOGBACK_PRESENT) {
             LogbackCapture.install();
         }
-        store(context).put(START_KEY, System.nanoTime());
+        startNanos.set(System.nanoTime());
+        store(context).put(SELF_KEY, this);
     }
 
     @Override
     public void testFailed(ExtensionContext context, Throwable cause) {
-        long start = (long) store(context).get(START_KEY);
+        long start = startNanos.get();
         long end = System.nanoTime();
+        startNanos.remove();
         if (LOGBACK_PRESENT) {
             LogbackCapture.uninstall();
         }
@@ -50,6 +56,7 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
 
     @Override
     public void testSuccessful(ExtensionContext context) {
+        startNanos.remove();
         if (LOGBACK_PRESENT) {
             LogbackCapture.uninstall();
         }
@@ -57,6 +64,7 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
 
     @Override
     public void testAborted(ExtensionContext context, Throwable cause) {
+        startNanos.remove();
         if (LOGBACK_PRESENT) {
             LogbackCapture.uninstall();
         }
@@ -64,9 +72,20 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
 
     @Override
     public void testDisabled(ExtensionContext context, Optional<String> reason) {
+        startNanos.remove();
         if (LOGBACK_PRESENT) {
             LogbackCapture.uninstall();
         }
+    }
+
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        return parameterContext.getParameter().getType() == LogOnFailExtension.class;
+    }
+
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        return store(extensionContext).get(SELF_KEY, LogOnFailExtension.class);
     }
 
     private static void replay(LoggingEvent event) {
@@ -79,5 +98,4 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
     private static ExtensionContext.Store store(ExtensionContext context) {
         return context.getStore(NAMESPACE);
     }
-
 }
