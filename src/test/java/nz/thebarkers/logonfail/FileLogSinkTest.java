@@ -21,35 +21,49 @@ class FileLogSinkTest {
 
     @Test
     void resolveFileProducesClassMethodPath() {
+        // Given
         var sink = new FileLogSink(tmp);
+
+        // When
         Path file = sink.resolveFile("MyTest#myMethod");
+
+        // Then
         assertEquals(tmp.resolve("MyTest").resolve("myMethod.log"), file);
     }
 
     @Test
     void reportCreatesFileWithHeader() throws IOException {
+        // Given
         var sink = new FileLogSink(tmp);
+
+        // When
         sink.report("MyTest#myMethod", List.of());
 
+        // Then
         Path file = tmp.resolve("MyTest").resolve("myMethod.log");
         assertTrue(Files.exists(file));
-        String content = Files.readString(file);
-        assertTrue(content.contains("LOG CAPTURE — MyTest#myMethod [FAILED]"));
+        assertTrue(Files.readString(file).contains("LOG CAPTURE — MyTest#myMethod [FAILED]"));
     }
 
     @Test
     void reportWritesEventLinesToFile() throws IOException {
+        // Given
         var sink = new FileLogSink(tmp);
-        sink.report("MyTest#myMethod", List.of(
-                event("io.kroxylicious.Foo", "something bad")));
 
+        // When
+        sink.report("MyTest#myMethod", List.of(event("io.kroxylicious.Foo", "something bad")));
+
+        // Then
         String content = Files.readString(tmp.resolve("MyTest").resolve("myMethod.log"));
         assertTrue(content.contains("something bad"));
     }
 
     @Test
     void reportCreatesIntermediateDirectories() {
+        // Given
         var sink = new FileLogSink(tmp.resolve("nested").resolve("dirs"));
+
+        // When / Then
         assertDoesNotThrow(() -> sink.report("T#m", List.of()));
     }
 }

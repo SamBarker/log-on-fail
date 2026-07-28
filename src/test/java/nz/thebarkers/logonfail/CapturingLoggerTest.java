@@ -16,8 +16,13 @@ class CapturingLoggerTest {
 
     @Test
     void warnCapturesFormattedMessage() {
-        new CapturingLogger("test.Logger").warn("hello {}", "world");
+        // Given
+        var logger = new CapturingLogger("test.Logger");
 
+        // When
+        logger.warn("hello {}", "world");
+
+        // Then
         List<CapturedEvent> all = EventBuffer.extractWindow(0, Long.MAX_VALUE);
         assertEquals(1, all.size());
         assertTrue(all.get(0).formattedLine().contains("hello world"));
@@ -25,24 +30,39 @@ class CapturingLoggerTest {
 
     @Test
     void loggerNameAppearsInFormattedLine() {
-        new CapturingLogger("com.example.Foo").info("msg");
+        // Given
+        var logger = new CapturingLogger("com.example.Foo");
 
+        // When
+        logger.info("msg");
+
+        // Then
         String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
         assertTrue(line.contains("com.example.Foo"));
     }
 
     @Test
     void levelAppearsInFormattedLine() {
-        new CapturingLogger("log").error("boom");
+        // Given
+        var logger = new CapturingLogger("log");
 
+        // When
+        logger.error("boom");
+
+        // Then
         String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
         assertTrue(line.contains("ERROR"));
     }
 
     @Test
     void thrownStackTraceAppearsInFormattedLine() {
-        new CapturingLogger("log").warn("oops", new RuntimeException("bad things"));
+        // Given
+        var logger = new CapturingLogger("log");
 
+        // When
+        logger.warn("oops", new RuntimeException("bad things"));
+
+        // Then
         String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
         assertTrue(line.contains("bad things"));
         assertTrue(line.contains("RuntimeException"));

@@ -30,40 +30,45 @@ class LogOnFailExtensionIntegrationTest {
 
     @Test
     void slf4jEventsAreCapturedWithinWindow() {
+        // Given
         long start = System.nanoTime();
+
+        // When
         LOG.warn("captured warning");
         long end = System.nanoTime();
 
+        // Then
         List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
-
-        assertTrue(events.stream()
-                .anyMatch(e -> e.formattedLine().contains("captured warning")));
+        assertTrue(events.stream().anyMatch(e -> e.formattedLine().contains("captured warning")));
     }
 
     @Test
     void eventsLoggedBeforeWindowAreExcluded() {
+        // Given
         LOG.warn("before the window");
-
         long start = System.nanoTime();
         long end = System.nanoTime();
 
+        // When
         List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
 
-        assertTrue(events.stream()
-                .noneMatch(e -> e.formattedLine().contains("before the window")));
+        // Then
+        assertTrue(events.stream().noneMatch(e -> e.formattedLine().contains("before the window")));
     }
 
     @Test
     void fileLogSinkWritesCapturedEventsToExpectedPath(@TempDir Path tmp) throws IOException {
+        // Given
         long start = System.nanoTime();
         LOG.error("full end-to-end message");
         long end = System.nanoTime();
-
         List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
         assertFalse(events.isEmpty(), "Expected at least one captured event");
 
+        // When
         new FileLogSink(tmp).report("SmokeTest#fileOutput", events);
 
+        // Then
         Path file = tmp.resolve("SmokeTest").resolve("fileOutput.log");
         assertTrue(Files.exists(file));
         assertTrue(Files.readString(file).contains("full end-to-end message"));
@@ -71,12 +76,14 @@ class LogOnFailExtensionIntegrationTest {
 
     @Test
     void passingTestWindowContainsNoEvents() {
+        // Given
         long start = System.nanoTime();
-        // nothing logged
         long end = System.nanoTime();
 
+        // When
         List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
 
+        // Then
         assertTrue(events.isEmpty());
     }
 }
