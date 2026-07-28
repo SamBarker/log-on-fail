@@ -51,7 +51,7 @@ class CapturingAppenderTest {
 
         List<CapturedEvent> all = CapturingAppender.extractWindow(0, Long.MAX_VALUE);
         assertEquals(1, all.size());
-        assertEquals("new", all.get(0).event().getMessage().getFormattedMessage());
+        assertTrue(all.get(0).formattedLine().contains("new"));
     }
 
     @Test
@@ -67,7 +67,7 @@ class CapturingAppenderTest {
 
         List<CapturedEvent> windowed = CapturingAppender.extractWindow(150L, 250L);
         assertEquals(1, windowed.size());
-        assertEquals("inside", windowed.get(0).event().getMessage().getFormattedMessage());
+        assertTrue(windowed.get(0).formattedLine().contains("inside"));
     }
 
     @Test

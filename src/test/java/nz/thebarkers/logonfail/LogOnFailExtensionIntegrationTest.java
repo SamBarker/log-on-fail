@@ -38,7 +38,7 @@ class LogOnFailExtensionIntegrationTest {
         List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
 
         assertTrue(events.stream()
-                .anyMatch(e -> e.event().getMessage().getFormattedMessage().equals("captured warning")));
+                .anyMatch(e -> e.formattedLine().contains("captured warning")));
     }
 
     @Test
@@ -51,7 +51,7 @@ class LogOnFailExtensionIntegrationTest {
         List<CapturedEvent> events = CapturingAppender.extractWindow(start, end);
 
         assertTrue(events.stream()
-                .noneMatch(e -> e.event().getMessage().getFormattedMessage().equals("before the window")));
+                .noneMatch(e -> e.formattedLine().contains("before the window")));
     }
 
     @Test

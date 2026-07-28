@@ -1,8 +1,5 @@
 package nz.thebarkers.logonfail;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.impl.Log4jLogEvent;
-import org.apache.logging.log4j.message.SimpleMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,12 +16,7 @@ class FileLogSinkTest {
     Path tmp;
 
     private static CapturedEvent event(String logger, String message) {
-        return new CapturedEvent(0L, Log4jLogEvent.newBuilder()
-                .setLoggerName(logger)
-                .setLevel(Level.WARN)
-                .setMessage(new SimpleMessage(message))
-                .build()
-                .toImmutable());
+        return new CapturedEvent(0L, "WARN  [main] " + logger + " - " + message);
     }
 
     @Test

@@ -8,6 +8,9 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.Property;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -52,8 +55,25 @@ public class CapturingAppender extends AbstractAppender {
     @Override
     public void append(LogEvent event) {
         long now = clock.getAsLong();
-        EVENTS.addLast(new CapturedEvent(now, event.toImmutable()));
+        EVENTS.addLast(new CapturedEvent(now, formatLine(event)));
         trim(now);
+    }
+
+    private static String formatLine(LogEvent event) {
+        String msg = event.getMessage().getFormattedMessage();
+        String timestamp = Instant.ofEpochMilli(event.getTimeMillis()).toString();
+        StringBuilder sb = new StringBuilder()
+                .append(timestamp).append(' ')
+                .append(String.format("%-5s", event.getLevel().name())).append(' ')
+                .append('[').append(event.getThreadName()).append("] ")
+                .append(event.getLoggerName()).append(" - ")
+                .append(msg);
+        if (event.getThrown() != null) {
+            StringWriter sw = new StringWriter();
+            event.getThrown().printStackTrace(new PrintWriter(sw));
+            sb.append('\n').append(sw);
+        }
+        return sb.toString();
     }
 
     private void trim(long now) {
