@@ -3,6 +3,7 @@ package nz.thebarkers.logonfail;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.event.KeyValuePair;
+import org.slf4j.event.Level;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ class CapturingLoggerTest {
     }
 
     @Test
-    void warnCapturesFormattedMessage() {
+    void warnCapturesMessagePatternAndArguments() {
         // Given
         var logger = new CapturingLogger("test.Logger");
 
@@ -26,11 +27,12 @@ class CapturingLoggerTest {
         // Then
         List<CapturedEvent> all = EventBuffer.extractWindow(0, Long.MAX_VALUE);
         assertEquals(1, all.size());
-        assertTrue(all.get(0).formattedLine().contains("hello world"));
+        assertEquals("hello {}", all.get(0).loggingEvent().getMessage());
+        assertArrayEquals(new Object[]{"world"}, all.get(0).loggingEvent().getArgumentArray());
     }
 
     @Test
-    void loggerNameAppearsInFormattedLine() {
+    void loggerNameIsCaptured() {
         // Given
         var logger = new CapturingLogger("com.example.Foo");
 
@@ -38,12 +40,11 @@ class CapturingLoggerTest {
         logger.info("msg");
 
         // Then
-        String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
-        assertTrue(line.contains("com.example.Foo"));
+        assertEquals("com.example.Foo", EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).loggingEvent().getLoggerName());
     }
 
     @Test
-    void levelAppearsInFormattedLine() {
+    void levelIsCaptured() {
         // Given
         var logger = new CapturingLogger("log");
 
@@ -51,8 +52,7 @@ class CapturingLoggerTest {
         logger.error("boom");
 
         // Then
-        String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
-        assertTrue(line.contains("ERROR"));
+        assertEquals(Level.ERROR, EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).loggingEvent().getLevel());
     }
 
     @Test
@@ -74,16 +74,15 @@ class CapturingLoggerTest {
     }
 
     @Test
-    void thrownStackTraceAppearsInFormattedLine() {
+    void throwableIsCaptured() {
         // Given
         var logger = new CapturingLogger("log");
+        var ex = new RuntimeException("bad things");
 
         // When
-        logger.warn("oops", new RuntimeException("bad things"));
+        logger.warn("oops", ex);
 
         // Then
-        String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
-        assertTrue(line.contains("bad things"));
-        assertTrue(line.contains("RuntimeException"));
+        assertSame(ex, EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).loggingEvent().getThrowable());
     }
 }

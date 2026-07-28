@@ -47,7 +47,7 @@ class EventBufferTest {
         // Then
         List<CapturedEvent> all = EventBuffer.extractWindow(0, Long.MAX_VALUE);
         assertEquals(1, all.size());
-        assertTrue(all.get(0).formattedLine().contains("new"));
+        assertEquals("new", all.get(0).loggingEvent().getMessage());
     }
 
     @Test
@@ -62,7 +62,7 @@ class EventBufferTest {
 
         // Then
         assertEquals(1, windowed.size());
-        assertTrue(windowed.get(0).formattedLine().contains("inside"));
+        assertEquals("inside", windowed.get(0).loggingEvent().getMessage());
     }
 
     @Test

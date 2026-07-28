@@ -1,11 +1,12 @@
 package nz.thebarkers.logonfail;
 
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.LoggingEvent;
+import org.slf4j.spi.LoggingEventAware;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 
-import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,38 +29,6 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
         LOGBACK_PRESENT = present;
     }
 
-    private final LogSink sink;
-
-    public LogOnFailExtension(LogSink sink) {
-        this.sink = sink;
-    }
-
-    /** Used by {@code @ExtendWith(LogOnFailExtension.class)}. */
-    public LogOnFailExtension() {
-        this(auto().sink);
-    }
-
-    public static LogOnFailExtension stdout() {
-        return new LogOnFailExtension(new StdoutLogSink());
-    }
-
-    public static LogOnFailExtension devNull() {
-        return new LogOnFailExtension((testId, events) -> {
-
-        });
-    }
-
-    public static LogOnFailExtension file(Path dir) {
-        return new LogOnFailExtension(new FileLogSink(dir));
-    }
-
-    public static LogOnFailExtension auto() {
-        boolean ci = System.getenv("CI") != null && !System.getenv("CI").isBlank();
-        return ci
-                ? file(Path.of("target/log-capture"))
-                : file(Path.of("target/log-capture"));
-    }
-
     @Override
     public void beforeEach(ExtensionContext context) {
         if (LOGBACK_PRESENT) {
@@ -76,7 +45,7 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
             LogbackCapture.uninstall();
         }
         List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
-        sink.report(testId(context), events);
+        events.forEach(e -> replay(e.loggingEvent()));
     }
 
     @Override
@@ -100,13 +69,15 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher {
         }
     }
 
+    private static void replay(LoggingEvent event) {
+        org.slf4j.Logger logger = LoggerFactory.getLogger(event.getLoggerName());
+        if (logger instanceof LoggingEventAware lea) {
+            lea.log(event);
+        }
+    }
+
     private static ExtensionContext.Store store(ExtensionContext context) {
         return context.getStore(NAMESPACE);
     }
 
-    private static String testId(ExtensionContext context) {
-        String cls = context.getTestClass().map(Class::getSimpleName).orElse("?");
-        String method = context.getTestMethod().map(Method::getName).orElse("?");
-        return cls + "#" + method;
-    }
 }
