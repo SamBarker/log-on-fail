@@ -1,12 +1,10 @@
 package nz.thebarkers.logonfail;
 
-import org.apache.logging.log4j.core.appender.FileAppender;
-import org.apache.logging.log4j.core.layout.PatternLayout;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 class FileLogSink implements LogSink {
@@ -22,19 +20,14 @@ class FileLogSink implements LogSink {
         Path file = resolveFile(testId);
         try {
             Files.createDirectories(file.getParent());
-            Files.writeString(file, "LOG CAPTURE — " + testId + " [FAILED]\n");
+            Files.writeString(file, "LOG CAPTURE — " + testId + " [FAILED]\n",
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            for (CapturedEvent e : events) {
+                Files.writeString(file, e.formattedLine() + '\n', StandardOpenOption.APPEND);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        FileAppender appender = FileAppender.newBuilder()
-                .setName("log-on-fail-file")
-                .withFileName(file.toString())
-                .withAppend(true)
-                .setLayout(PatternLayout.createDefaultLayout())
-                .build();
-        appender.start();
-        events.forEach(e -> appender.append(e.event()));
-        appender.stop();
     }
 
     Path resolveFile(String testId) {
