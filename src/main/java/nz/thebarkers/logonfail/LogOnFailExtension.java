@@ -93,17 +93,26 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
     }
 
     public void assertLogged(Class<?> logger, Level level, Consumer<String> assertion) {
+        assertLoggedInternal(logger, level, assertion);
+    }
+
+    public void assertLogged(Class<?> logger, Consumer<String> assertion) {
+        assertLoggedInternal(logger, null, assertion);
+    }
+
+    private void assertLoggedInternal(Class<?> logger, Level level, Consumer<String> assertion) {
         List<CapturedEvent> window = EventBuffer.extractWindow(startNanos.get(), System.nanoTime());
         List<CapturedEvent> matching = window.stream()
                 .filter(e -> logger.getName().equals(e.loggingEvent().getLoggerName()))
-                .filter(e -> level == e.loggingEvent().getLevel())
+                .filter(e -> level == null || level == e.loggingEvent().getLevel())
                 .toList();
         if (matching.isEmpty()) {
+            String levelClause = level != null ? " at [" + level + "]" : "";
             String captured = window.stream()
                     .map(e -> format(e.loggingEvent()))
                     .collect(Collectors.joining("\n  ", "  ", ""));
-            throw new AssertionError("No log events from [" + logger.getName() + "] at [" + level
-                    + "] captured since this test started (events from all threads are included)."
+            throw new AssertionError("No log events from [" + logger.getName() + "]" + levelClause
+                    + " captured since this test started (events from all threads are included)."
                     + " All events captured this test:\n" + (window.isEmpty() ? "  (none)" : captured));
         }
         AssertionError last = null;
@@ -115,8 +124,9 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
                 last = e;
             }
         }
+        String levelClause = level != null ? " at [" + level + "]" : "";
         throw new AssertionError("None of the " + matching.size() + " log event(s) from ["
-                + logger.getName() + "] at [" + level + "] satisfied the assertion.", last);
+                + logger.getName() + "]" + levelClause + " satisfied the assertion.", last);
     }
 
     private static String format(LoggingEvent event) {

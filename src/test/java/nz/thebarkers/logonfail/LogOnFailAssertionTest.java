@@ -71,6 +71,16 @@ class LogOnFailAssertionTest {
     }
 
     @Test
+    void assertLoggedWithoutLevelMatchesAnyLevel(LogOnFailExtension ext) {
+        // Given
+        LOG.debug("debug message");
+
+        // When / Then
+        assertDoesNotThrow(() -> ext.assertLogged(LogOnFailAssertionTest.class,
+                msg -> assertTrue(msg.contains("debug message"))));
+    }
+
+    @Test
     void assertLoggedFailureMessageListsCapturedEvents(LogOnFailExtension ext) {
         // Given
         LOG.info("something else was logged");
