@@ -81,6 +81,41 @@ class LogOnFailAssertionTest {
     }
 
     @Test
+    void assertNotLoggedPassesWhenNothingLogged(LogOnFailExtension ext) {
+        // Given
+
+        // When / Then
+        assertDoesNotThrow(() -> ext.assertNotLogged(LogOnFailAssertionTest.class, Level.WARN));
+    }
+
+    @Test
+    void assertNotLoggedPassesForDifferentLogger(LogOnFailExtension ext) {
+        // Given
+        LOG.warn("from this class");
+
+        // When / Then
+        assertDoesNotThrow(() -> ext.assertNotLogged(String.class, Level.WARN));
+    }
+
+    @Test
+    void assertNotLoggedPassesForDifferentLevel(LogOnFailExtension ext) {
+        // Given
+        LOG.info("info message");
+
+        // When / Then
+        assertDoesNotThrow(() -> ext.assertNotLogged(LogOnFailAssertionTest.class, Level.WARN));
+    }
+
+    @Test
+    void assertNotLoggedFailsWhenMatchingEventExists(LogOnFailExtension ext) {
+        // Given
+        LOG.warn("unexpected warning");
+
+        // When / Then
+        assertThrows(AssertionError.class, () -> ext.assertNotLogged(LogOnFailAssertionTest.class, Level.WARN));
+    }
+
+    @Test
     void assertLoggedFailureMessageListsCapturedEvents(LogOnFailExtension ext) {
         // Given
         LOG.info("something else was logged");

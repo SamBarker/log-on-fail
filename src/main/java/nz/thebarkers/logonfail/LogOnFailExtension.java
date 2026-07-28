@@ -129,6 +129,21 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
                 + logger.getName() + "]" + levelClause + " satisfied the assertion.", last);
     }
 
+    public void assertNotLogged(Class<?> logger, Level level) {
+        List<CapturedEvent> window = EventBuffer.extractWindow(startNanos.get(), System.nanoTime());
+        List<String> matching = window.stream()
+                .filter(e -> logger.getName().equals(e.loggingEvent().getLoggerName()))
+                .filter(e -> level == e.loggingEvent().getLevel())
+                .map(e -> format(e.loggingEvent()))
+                .toList();
+        if (!matching.isEmpty()) {
+            throw new AssertionError("Expected no log events from [" + logger.getName() + "] at ["
+                    + level + "] but found " + matching.size()
+                    + " (events from all threads are included):\n  "
+                    + String.join("\n  ", matching));
+        }
+    }
+
     private static String format(LoggingEvent event) {
         return MessageFormatter.arrayFormat(event.getMessage(), event.getArgumentArray(),
                 event.getThrowable()).getMessage();
