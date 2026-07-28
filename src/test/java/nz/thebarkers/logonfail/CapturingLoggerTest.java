@@ -2,6 +2,7 @@ package nz.thebarkers.logonfail;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.event.KeyValuePair;
 
 import java.util.List;
 
@@ -52,6 +53,24 @@ class CapturingLoggerTest {
         // Then
         String line = EventBuffer.extractWindow(0, Long.MAX_VALUE).get(0).formattedLine();
         assertTrue(line.contains("ERROR"));
+    }
+
+    @Test
+    void keyValuePairsAreCaptured() {
+        // Given
+        var logger = new CapturingLogger("test.Logger");
+
+        // When
+        logger.atWarn().addKeyValue("requestId", "abc123").log("something happened");
+
+        // Then
+        List<CapturedEvent> all = EventBuffer.extractWindow(0, Long.MAX_VALUE);
+        assertEquals(1, all.size());
+        List<KeyValuePair> kvps = all.get(0).loggingEvent().getKeyValuePairs();
+        assertNotNull(kvps);
+        assertEquals(1, kvps.size());
+        assertEquals("requestId", kvps.get(0).key);
+        assertEquals("abc123", kvps.get(0).value);
     }
 
     @Test

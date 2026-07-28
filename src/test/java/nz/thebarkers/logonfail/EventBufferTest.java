@@ -2,6 +2,8 @@ package nz.thebarkers.logonfail;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.event.Level;
+import org.slf4j.event.LoggingEvent;
 
 import java.util.List;
 
@@ -15,12 +17,17 @@ class EventBufferTest {
         EventBuffer.setTtlNanos(EventBuffer.DEFAULT_TTL_NANOS);
     }
 
+    private static LoggingEvent event(String message) {
+        return new LogOnFailLoggingEvent(Level.WARN, "test", message, null, null,
+                System.currentTimeMillis(), "main", null);
+    }
+
     @Test
     void captureStampsEventWithProvidedNanoTime() {
         // Given
 
         // When
-        EventBuffer.capture(1_000L, "hello");
+        EventBuffer.capture(1_000L, event("hello"));
 
         // Then
         List<CapturedEvent> all = EventBuffer.extractWindow(0, Long.MAX_VALUE);
@@ -32,10 +39,10 @@ class EventBufferTest {
     void captureTrimsEventsOlderThanTtl() {
         // Given
         EventBuffer.setTtlNanos(100L);
-        EventBuffer.capture(0L, "old");
+        EventBuffer.capture(0L, event("old"));
 
         // When
-        EventBuffer.capture(200L, "new");   // cutoff = 200-100 = 100 → "old" (t=0) trimmed
+        EventBuffer.capture(200L, event("new"));   // cutoff = 200-100 = 100 → "old" (t=0) trimmed
 
         // Then
         List<CapturedEvent> all = EventBuffer.extractWindow(0, Long.MAX_VALUE);
@@ -46,9 +53,9 @@ class EventBufferTest {
     @Test
     void extractWindowReturnsOnlyEventsInRange() {
         // Given
-        EventBuffer.capture(100L, "before");
-        EventBuffer.capture(200L, "inside");
-        EventBuffer.capture(300L, "after");
+        EventBuffer.capture(100L, event("before"));
+        EventBuffer.capture(200L, event("inside"));
+        EventBuffer.capture(300L, event("after"));
 
         // When
         List<CapturedEvent> windowed = EventBuffer.extractWindow(150L, 250L);
@@ -61,8 +68,8 @@ class EventBufferTest {
     @Test
     void extractWindowBoundariesAreInclusive() {
         // Given
-        EventBuffer.capture(100L, "start");
-        EventBuffer.capture(200L, "end");
+        EventBuffer.capture(100L, event("start"));
+        EventBuffer.capture(200L, event("end"));
 
         // When
         List<CapturedEvent> windowed = EventBuffer.extractWindow(100L, 200L);
@@ -74,7 +81,7 @@ class EventBufferTest {
     @Test
     void resetClearsBuffer() {
         // Given
-        EventBuffer.capture(1L, "something");
+        EventBuffer.capture(1L, event("something"));
 
         // When
         EventBuffer.reset();

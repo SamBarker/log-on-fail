@@ -5,25 +5,20 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.turbo.TurboFilter;
 import ch.qos.logback.core.spi.FilterReply;
 import org.slf4j.Marker;
-import org.slf4j.helpers.MessageFormatter;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.Instant;
 
 class CapturingTurboFilter extends TurboFilter {
 
     @Override
     public FilterReply decide(Marker marker, Logger logger, Level level, String format, Object[] params, Throwable t) {
-        String msg = format != null ? MessageFormatter.arrayFormat(format, params, t).getMessage() : "";
-        String line = String.format("%s %-5s [%s] %s - %s",
-                Instant.now(), level.toString(), Thread.currentThread().getName(), logger.getName(), msg);
-        if (t != null) {
-            StringWriter sw = new StringWriter();
-            t.printStackTrace(new PrintWriter(sw));
-            line = line + '\n' + sw;
+        org.slf4j.event.Level slf4jLevel;
+        try {
+            slf4jLevel = org.slf4j.event.Level.valueOf(level.toString());
+        } catch (IllegalArgumentException e) {
+            slf4jLevel = org.slf4j.event.Level.TRACE;
         }
-        EventBuffer.capture(System.nanoTime(), line);
+        EventBuffer.capture(System.nanoTime(), new LogOnFailLoggingEvent(
+                slf4jLevel, logger.getName(), format, params, t,
+                System.currentTimeMillis(), Thread.currentThread().getName(), null));
         return FilterReply.DENY;
     }
 }

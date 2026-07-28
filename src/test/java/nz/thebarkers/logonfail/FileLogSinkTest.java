@@ -2,6 +2,7 @@ package nz.thebarkers.logonfail;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +16,9 @@ class FileLogSinkTest {
     @TempDir
     Path tmp;
 
-    private static CapturedEvent event(String logger, String message) {
-        return new CapturedEvent(0L, "WARN  [main] " + logger + " - " + message);
+    private static CapturedEvent event(String loggerName, String message) {
+        return new CapturedEvent(0L, new LogOnFailLoggingEvent(Level.WARN, loggerName, message,
+                null, null, 0L, "main", null));
     }
 
     @Test

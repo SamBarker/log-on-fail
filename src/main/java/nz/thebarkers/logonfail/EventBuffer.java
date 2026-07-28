@@ -1,5 +1,7 @@
 package nz.thebarkers.logonfail;
 
+import org.slf4j.event.LoggingEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -18,8 +20,8 @@ class EventBuffer {
         ttlNanos = ttl;
     }
 
-    static void capture(long nanoTime, String formattedLine) {
-        EVENTS.addLast(new CapturedEvent(nanoTime, formattedLine));
+    static void capture(long nanoTime, LoggingEvent event) {
+        EVENTS.addLast(new CapturedEvent(nanoTime, event));
         trim(nanoTime);
     }
 

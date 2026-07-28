@@ -2,35 +2,31 @@ package nz.thebarkers.logonfail;
 
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
+import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.AbstractLogger;
-import org.slf4j.helpers.MessageFormatter;
+import org.slf4j.spi.LoggingEventAware;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.Instant;
-
-class CapturingLogger extends AbstractLogger {
+class CapturingLogger extends AbstractLogger implements LoggingEventAware {
 
     CapturingLogger(String name) {
         this.name = name;
     }
 
     @Override
+    public void log(LoggingEvent event) {
+        EventBuffer.capture(System.nanoTime(), new LogOnFailLoggingEvent(
+                event.getLevel(), name, event.getMessage(), event.getArgumentArray(),
+                event.getThrowable(), event.getTimeStamp() > 0 ? event.getTimeStamp() : System.currentTimeMillis(),
+                event.getThreadName() != null ? event.getThreadName() : Thread.currentThread().getName(),
+                event.getKeyValuePairs()));
+    }
+
+    @Override
     protected void handleNormalizedLoggingCall(Level level, Marker marker,
             String messagePattern, Object[] arguments, Throwable throwable) {
-        String msg = MessageFormatter.arrayFormat(messagePattern, arguments, throwable).getMessage();
-        String line = String.format("%s %-5s [%s] %s - %s",
-                Instant.now(),
-                level.name(),
-                Thread.currentThread().getName(),
-                name,
-                msg);
-        if (throwable != null) {
-            StringWriter sw = new StringWriter();
-            throwable.printStackTrace(new PrintWriter(sw));
-            line = line + '\n' + sw;
-        }
-        EventBuffer.capture(System.nanoTime(), line);
+        EventBuffer.capture(System.nanoTime(), new LogOnFailLoggingEvent(
+                level, name, messagePattern, arguments, throwable,
+                System.currentTimeMillis(), Thread.currentThread().getName(), null));
     }
 
     @Override
