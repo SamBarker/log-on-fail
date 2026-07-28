@@ -6,11 +6,15 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
+import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LoggingEventAware;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, ParameterResolver {
 
@@ -86,6 +90,38 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return store(extensionContext).get(SELF_KEY, LogOnFailExtension.class);
+    }
+
+    public void assertLogged(Class<?> logger, Level level, Consumer<String> assertion) {
+        List<CapturedEvent> window = EventBuffer.extractWindow(startNanos.get(), System.nanoTime());
+        List<CapturedEvent> matching = window.stream()
+                .filter(e -> logger.getName().equals(e.loggingEvent().getLoggerName()))
+                .filter(e -> level == e.loggingEvent().getLevel())
+                .toList();
+        if (matching.isEmpty()) {
+            String captured = window.stream()
+                    .map(e -> format(e.loggingEvent()))
+                    .collect(Collectors.joining("\n  ", "  ", ""));
+            throw new AssertionError("No log events from [" + logger.getName() + "] at [" + level
+                    + "] captured since this test started (events from all threads are included)."
+                    + " All events captured this test:\n" + (window.isEmpty() ? "  (none)" : captured));
+        }
+        AssertionError last = null;
+        for (CapturedEvent event : matching) {
+            try {
+                assertion.accept(format(event.loggingEvent()));
+                return;
+            } catch (AssertionError e) {
+                last = e;
+            }
+        }
+        throw new AssertionError("None of the " + matching.size() + " log event(s) from ["
+                + logger.getName() + "] at [" + level + "] satisfied the assertion.", last);
+    }
+
+    private static String format(LoggingEvent event) {
+        return MessageFormatter.arrayFormat(event.getMessage(), event.getArgumentArray(),
+                event.getThrowable()).getMessage();
     }
 
     private static void replay(LoggingEvent event) {
