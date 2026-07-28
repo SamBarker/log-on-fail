@@ -18,6 +18,7 @@
 
         <junit.version>5.14.4</junit.version>
         <slf4j.version>2.0.18</slf4j.version>
+        <logback.version>1.5.18</logback.version>
     </properties>
 
     <dependencies>
@@ -31,6 +32,14 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+
+        <!-- Optional: Logback integration (present at runtime in consumers that use Logback) -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- Test -->
