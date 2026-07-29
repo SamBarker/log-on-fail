@@ -4,9 +4,12 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
 import org.slf4j.helpers.BasicMarkerFactory;
 import org.slf4j.helpers.NOPMDCAdapter;
+import org.slf4j.simple.SimpleServiceProvider;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 
 public class LogOnFailSLF4JProvider implements SLF4JServiceProvider {
@@ -37,17 +40,27 @@ public class LogOnFailSLF4JProvider implements SLF4JServiceProvider {
 
     @Override
     public void initialize() {
-        ILoggerFactory delegate = findAndInitializeDelegate();
-        loggerFactory = new CapturingLoggerFactory(delegate);
+        List<SLF4JServiceProvider> providers = new ArrayList<>();
+        ServiceLoader.load(SLF4JServiceProvider.class).forEach(providers::add);
+        loggerFactory = new CapturingLoggerFactory(selectDelegate(providers));
     }
 
-    private ILoggerFactory findAndInitializeDelegate() {
-        for (SLF4JServiceProvider provider : ServiceLoader.load(SLF4JServiceProvider.class)) {
+    ILoggerFactory selectDelegate(Iterable<SLF4JServiceProvider> providers) {
+        SLF4JServiceProvider fallback = null;
+        for (SLF4JServiceProvider provider : providers) {
             if (provider instanceof LogOnFailSLF4JProvider) {
+                continue;
+            }
+            if (provider instanceof SimpleServiceProvider) {
+                if (fallback == null) fallback = provider;
                 continue;
             }
             provider.initialize();
             return provider.getLoggerFactory();
+        }
+        if (fallback != null) {
+            fallback.initialize();
+            return fallback.getLoggerFactory();
         }
         return null;
     }
