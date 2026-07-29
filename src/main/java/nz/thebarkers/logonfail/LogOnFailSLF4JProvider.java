@@ -7,9 +7,11 @@ import org.slf4j.helpers.NOPMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
+import java.util.ServiceLoader;
+
 public class LogOnFailSLF4JProvider implements SLF4JServiceProvider {
 
-    private final ILoggerFactory loggerFactory = new CapturingLoggerFactory();
+    private CapturingLoggerFactory loggerFactory;
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
 
@@ -35,5 +37,18 @@ public class LogOnFailSLF4JProvider implements SLF4JServiceProvider {
 
     @Override
     public void initialize() {
+        ILoggerFactory delegate = findAndInitializeDelegate();
+        loggerFactory = new CapturingLoggerFactory(delegate);
+    }
+
+    private ILoggerFactory findAndInitializeDelegate() {
+        for (SLF4JServiceProvider provider : ServiceLoader.load(SLF4JServiceProvider.class)) {
+            if (provider instanceof LogOnFailSLF4JProvider) {
+                continue;
+            }
+            provider.initialize();
+            return provider.getLoggerFactory();
+        }
+        return null;
     }
 }

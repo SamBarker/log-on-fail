@@ -8,7 +8,7 @@ import org.slf4j.spi.LoggingEventAware;
 
 class CapturingLogger extends AbstractLogger implements LoggingEventAware {
 
-    CapturingLogger(String name) {
+    CapturingLogger(String name, org.slf4j.Logger realLogger) {
         this.name = name;
     }
 
