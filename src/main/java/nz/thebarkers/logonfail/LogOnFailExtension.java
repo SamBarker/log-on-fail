@@ -13,7 +13,6 @@ import org.slf4j.spi.LoggingEventAware;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, ParameterResolver {
@@ -93,47 +92,6 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
     }
 
     /**
-     * Asserts that at least one log event from {@code logger} at {@code level} was captured since
-     * this test started, and that the formatted message satisfies {@code assertion}.
-     *
-     * <p>The window covers all threads — not just the JUnit test thread. If the system under test
-     * logs from a background thread, those events are included.
-     *
-     * <p>The {@code assertion} consumer receives the fully formatted message (SLF4J placeholders
-     * resolved). Use any assertion library inside it; an {@link AssertionError} thrown by the
-     * consumer is treated as a failed match. If no captured event satisfies the consumer, this
-     * method throws an {@link AssertionError} listing all events that were captured.
-     *
-     * <p>Typical usage with AssertJ:
-     * <pre>{@code
-     * ext.assertLogged(MyService.class, Level.WARN,
-     *     msg -> assertThat(msg).contains("plugin not found"));
-     * }</pre>
-     *
-     * @param logger    the logger class whose events to inspect
-     * @param level     the required log level
-     * @param assertion a consumer that asserts on the formatted message; throws AssertionError on mismatch
-     * @throws AssertionError if no matching event was captured, or none satisfied the assertion
-     */
-    public void assertLogged(Class<?> logger, Level level, Consumer<String> assertion) {
-        assertLoggedInternal(logger, level, event -> assertion.accept(format(event)));
-    }
-
-    /**
-     * Asserts that at least one log event from {@code logger} at any level was captured since this
-     * test started, and that the formatted message satisfies {@code assertion}.
-     *
-     * <p>Convenience overload of {@link #assertLogged(Class, Level, Consumer)} that matches any level.
-     *
-     * @param logger    the logger class whose events to inspect
-     * @param assertion a consumer that asserts on the formatted message; throws AssertionError on mismatch
-     * @throws AssertionError if no matching event was captured, or none satisfied the assertion
-     */
-    public void assertLogged(Class<?> logger, Consumer<String> assertion) {
-        assertLoggedInternal(logger, null, event -> assertion.accept(format(event)));
-    }
-
-    /**
      * Asserts that no log events from {@code logger} at {@code level} were captured since this
      * test started.
      *
@@ -161,36 +119,6 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
                     + " (events from all threads are included):\n  "
                     + String.join("\n  ", matching));
         }
-    }
-
-    private void assertLoggedInternal(Class<?> logger, Level level, Consumer<LoggingEvent> assertion) {
-        List<CapturedEvent> window = EventBuffer.extractWindow(startNanos.get(), System.nanoTime());
-        List<LoggingEvent> matching = window.stream()
-                .map(CapturedEvent::loggingEvent)
-                .filter(e -> logger.getName().equals(e.getLoggerName()))
-                .filter(e -> level == null || level == e.getLevel())
-                .toList();
-        if (matching.isEmpty()) {
-            String levelClause = level != null ? " at [" + level + "]" : "";
-            String captured = window.stream()
-                    .map(e -> format(e.loggingEvent()))
-                    .collect(Collectors.joining("\n  ", "  ", ""));
-            throw new AssertionError("No log events from [" + logger.getName() + "]" + levelClause
-                    + " captured since this test started (events from all threads are included)."
-                    + " All events captured this test:\n" + (window.isEmpty() ? "  (none)" : captured));
-        }
-        AssertionError last = null;
-        for (LoggingEvent event : matching) {
-            try {
-                assertion.accept(event);
-                return;
-            } catch (AssertionError e) {
-                last = e;
-            }
-        }
-        String levelClause = level != null ? " at [" + level + "]" : "";
-        throw new AssertionError("None of the " + matching.size() + " log event(s) from ["
-                + logger.getName() + "]" + levelClause + " satisfied the assertion.", last);
     }
 
     /**

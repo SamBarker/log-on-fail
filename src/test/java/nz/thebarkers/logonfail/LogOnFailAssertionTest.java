@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import static nz.thebarkers.logonfail.LoggingEventAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LogOnFailAssertionTest {
@@ -22,62 +23,60 @@ class LogOnFailAssertionTest {
     }
 
     @Test
-    void assertLoggedMatchesEventByLoggerAndLevel(LogOnFailExtension ext) {
+    void loggedReturnsEventMatchingLoggerAndLevel(LogOnFailExtension ext) {
         // Given
         LOG.warn("expected message");
 
         // When / Then
-        assertDoesNotThrow(() -> ext.assertLogged(LogOnFailAssertionTest.class, Level.WARN,
-                msg -> assertTrue(msg.contains("expected message"))));
+        assertDoesNotThrow(() ->
+                assertThat(ext.logged(LogOnFailAssertionTest.class, Level.WARN))
+                        .hasFormattedMessage("expected message"));
     }
 
     @Test
-    void assertLoggedFormatsMessageArguments(LogOnFailExtension ext) {
+    void loggedFormatsMessageArguments(LogOnFailExtension ext) {
         // Given
         LOG.warn("hello {}", "world");
 
         // When / Then
-        assertDoesNotThrow(() -> ext.assertLogged(LogOnFailAssertionTest.class, Level.WARN,
-                msg -> assertEquals("hello world", msg)));
+        assertThat(ext.logged(LogOnFailAssertionTest.class, Level.WARN))
+                .hasFormattedMessage("hello world");
     }
 
     @Test
-    void assertLoggedIgnoresEventsFromOtherLoggers(LogOnFailExtension ext) {
+    void loggedThrowsWhenNoEventsMatchLogger(LogOnFailExtension ext) {
         // Given
         LOG.warn("from this class");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.assertLogged(String.class, Level.WARN,
-                msg -> {}));
+        assertThrows(AssertionError.class, () -> ext.logged(String.class, Level.WARN));
     }
 
     @Test
-    void assertLoggedIgnoresEventsAtWrongLevel(LogOnFailExtension ext) {
+    void loggedThrowsWhenNoEventsMatchLevel(LogOnFailExtension ext) {
         // Given
         LOG.info("info message");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.assertLogged(LogOnFailAssertionTest.class, Level.WARN,
-                msg -> {}));
+        assertThrows(AssertionError.class, () -> ext.logged(LogOnFailAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void assertLoggedFailsWhenNoEventsCaptured(LogOnFailExtension ext) {
+    void loggedThrowsWhenNothingCaptured(LogOnFailExtension ext) {
         // Given
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.assertLogged(LogOnFailAssertionTest.class, Level.WARN,
-                msg -> {}));
+        assertThrows(AssertionError.class, () -> ext.logged(LogOnFailAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void assertLoggedWithoutLevelMatchesAnyLevel(LogOnFailExtension ext) {
+    void loggedWithoutLevelMatchesAnyLevel(LogOnFailExtension ext) {
         // Given
         LOG.debug("debug message");
 
         // When / Then
-        assertDoesNotThrow(() -> ext.assertLogged(LogOnFailAssertionTest.class,
-                msg -> assertTrue(msg.contains("debug message"))));
+        assertThat(ext.logged(LogOnFailAssertionTest.class))
+                .hasFormattedMessage("debug message");
     }
 
     @Test
@@ -116,16 +115,27 @@ class LogOnFailAssertionTest {
     }
 
     @Test
-    void assertLoggedFailureMessageListsCapturedEvents(LogOnFailExtension ext) {
+    void loggedFailureMessageListsCapturedEvents(LogOnFailExtension ext) {
         // Given
         LOG.info("something else was logged");
 
         // When
-        AssertionError err = assertThrows(AssertionError.class, () ->
-                ext.assertLogged(LogOnFailAssertionTest.class, Level.WARN, msg -> {}));
+        AssertionError err = assertThrows(AssertionError.class,
+                () -> ext.logged(LogOnFailAssertionTest.class, Level.WARN));
 
         // Then
         assertTrue(err.getMessage().contains("something else was logged"),
                 "failure message should list captured events, got: " + err.getMessage());
+    }
+
+    @Test
+    void loggedExposeKeyValuePairsFromFluentApi(LogOnFailExtension ext) {
+        // Given
+        LOG.atWarn().addKeyValue("filterName", "myFilterDef").log("Plugin is deprecated");
+
+        // When / Then
+        assertThat(ext.logged(LogOnFailAssertionTest.class, Level.WARN))
+                .hasFormattedMessage("Plugin is deprecated")
+                .containsKeyValue("filterName", "myFilterDef");
     }
 }
