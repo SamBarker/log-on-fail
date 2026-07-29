@@ -10,7 +10,15 @@
     <packaging>jar</packaging>
 
     <name>log-on-fail</name>
-    <description>JUnit 5 extension that silences Log4j2 output during passing tests and surfaces it only on failure</description>
+    <description>JUnit 5 extension that silences log output during passing tests and surfaces it only on failure</description>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
