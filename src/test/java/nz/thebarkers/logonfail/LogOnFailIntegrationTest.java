@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMethod;
 
-class LogOnFailAcceptanceTest {
+class LogOnFailIntegrationTest {
 
     private ListAppender<ILoggingEvent> appender;
 
