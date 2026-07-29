@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.MessageFormatter;
-import org.slf4j.spi.LoggingEventAware;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,26 +20,10 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
             ExtensionContext.Namespace.create(LogOnFailExtension.class);
     private static final String SELF_KEY = "self";
 
-    private static final boolean LOGBACK_PRESENT;
-
-    static {
-        boolean present;
-        try {
-            Class.forName("ch.qos.logback.classic.LoggerContext");
-            present = true;
-        } catch (ClassNotFoundException e) {
-            present = false;
-        }
-        LOGBACK_PRESENT = present;
-    }
-
     private final ThreadLocal<Long> startNanos = new ThreadLocal<>();
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        if (LOGBACK_PRESENT) {
-            LogbackCapture.install();
-        }
         startNanos.set(System.nanoTime());
         store(context).put(SELF_KEY, this);
     }
@@ -50,9 +33,6 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
         long start = startNanos.get();
         long end = System.nanoTime();
         startNanos.remove();
-        if (LOGBACK_PRESENT) {
-            LogbackCapture.uninstall();
-        }
         List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
         events.forEach(e -> replay(e.loggingEvent()));
     }
@@ -60,25 +40,16 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
     @Override
     public void testSuccessful(ExtensionContext context) {
         startNanos.remove();
-        if (LOGBACK_PRESENT) {
-            LogbackCapture.uninstall();
-        }
     }
 
     @Override
     public void testAborted(ExtensionContext context, Throwable cause) {
         startNanos.remove();
-        if (LOGBACK_PRESENT) {
-            LogbackCapture.uninstall();
-        }
     }
 
     @Override
     public void testDisabled(ExtensionContext context, Optional<String> reason) {
         startNanos.remove();
-        if (LOGBACK_PRESENT) {
-            LogbackCapture.uninstall();
-        }
     }
 
     @Override
@@ -181,9 +152,8 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
     }
 
     private static void replay(LoggingEvent event) {
-        org.slf4j.Logger logger = LoggerFactory.getLogger(event.getLoggerName());
-        if (logger instanceof LoggingEventAware lea) {
-            lea.log(event);
+        if (LoggerFactory.getILoggerFactory() instanceof CapturingLoggerFactory factory) {
+            factory.replay(event);
         }
     }
 
