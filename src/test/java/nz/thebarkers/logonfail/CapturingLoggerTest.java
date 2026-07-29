@@ -19,7 +19,7 @@ class CapturingLoggerTest {
     @Test
     void warnCapturesMessagePatternAndArguments() {
         // Given
-        var logger = new CapturingLogger("test.Logger");
+        var logger = new CapturingLogger("com.example.Foo", null);
 
         // When
         logger.warn("hello {}", "world");
@@ -34,7 +34,7 @@ class CapturingLoggerTest {
     @Test
     void loggerNameIsCaptured() {
         // Given
-        var logger = new CapturingLogger("com.example.Foo");
+        var logger = new CapturingLogger("com.example.Foo", null);
 
         // When
         logger.info("msg");
@@ -46,7 +46,7 @@ class CapturingLoggerTest {
     @Test
     void levelIsCaptured() {
         // Given
-        var logger = new CapturingLogger("log");
+        var logger = new CapturingLogger("com.example.Foo", null);
 
         // When
         logger.error("boom");
@@ -58,7 +58,7 @@ class CapturingLoggerTest {
     @Test
     void keyValuePairsAreCaptured() {
         // Given
-        var logger = new CapturingLogger("test.Logger");
+        var logger = new CapturingLogger("com.example.Foo", null);
 
         // When
         logger.atWarn().addKeyValue("requestId", "abc123").log("something happened");
@@ -76,7 +76,7 @@ class CapturingLoggerTest {
     @Test
     void throwableIsCaptured() {
         // Given
-        var logger = new CapturingLogger("log");
+        var logger = new CapturingLogger("com.example.Foo", null);
         var ex = new RuntimeException("bad things");
 
         // When
