@@ -42,6 +42,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- AssertJ: required for LoggingEventAssert -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.27.3</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
