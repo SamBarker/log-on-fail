@@ -3,6 +3,7 @@ package nz.thebarkers.logonfail;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.event.LoggingEvent;
+import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LoggingEventAware;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +16,10 @@ class CapturingLoggerFactory implements ILoggerFactory {
 
     CapturingLoggerFactory(ILoggerFactory delegate) {
         this.delegate = delegate;
+    }
+
+    ILoggerFactory getDelegate() {
+        return delegate;
     }
 
     @Override
@@ -32,6 +37,19 @@ class CapturingLoggerFactory implements ILoggerFactory {
         Logger real = delegate.getLogger(event.getLoggerName());
         if (real instanceof LoggingEventAware lea) {
             lea.log(event);
+        } else {
+            // Fallback for non-LoggingEventAware backends (e.g. slf4j-simple): format
+            // the message and call the level-specific method so the event reaches output.
+            String formatted = MessageFormatter.arrayFormat(
+                    event.getMessage(), event.getArgumentArray(), event.getThrowable()).getMessage();
+            Throwable t = event.getThrowable();
+            switch (event.getLevel()) {
+                case ERROR -> real.error(formatted, t);
+                case WARN  -> real.warn(formatted, t);
+                case INFO  -> real.info(formatted, t);
+                case DEBUG -> real.debug(formatted, t);
+                case TRACE -> real.trace(formatted, t);
+            }
         }
     }
 }

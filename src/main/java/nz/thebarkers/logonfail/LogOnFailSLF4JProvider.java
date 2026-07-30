@@ -4,7 +4,6 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
 import org.slf4j.helpers.BasicMarkerFactory;
 import org.slf4j.helpers.NOPMDCAdapter;
-import org.slf4j.simple.SimpleServiceProvider;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
@@ -13,6 +12,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 public class LogOnFailSLF4JProvider implements SLF4JServiceProvider {
+
+    private static final String SIMPLE_PROVIDER_CLASS = "org.slf4j.simple.SimpleServiceProvider";
 
     private CapturingLoggerFactory loggerFactory;
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
@@ -51,7 +52,7 @@ public class LogOnFailSLF4JProvider implements SLF4JServiceProvider {
             if (provider instanceof LogOnFailSLF4JProvider) {
                 continue;
             }
-            if (provider instanceof SimpleServiceProvider) {
+            if (SIMPLE_PROVIDER_CLASS.equals(provider.getClass().getName())) {
                 if (fallback == null) fallback = provider;
                 continue;
             }
