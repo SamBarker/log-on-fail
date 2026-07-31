@@ -26,7 +26,7 @@
 
         <junit.version>5.14.4</junit.version>
         <slf4j.version>2.0.18</slf4j.version>
-        <logback.version>1.5.18</logback.version>
+        <logback.version>1.5.34</logback.version>
     </properties>
 
     <dependencies>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.27.3</version>
+            <version>3.27.7</version>
         </dependency>
 
         <!-- Test -->
