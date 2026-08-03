@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>nz.thebarkers</groupId>
-    <artifactId>log-on-fail-parent</artifactId>
+    <artifactId>logsquelcher-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>log-on-fail-parent</name>
-    <description>Parent POM for the log-on-fail project</description>
+    <name>logsquelcher-parent</name>
+    <description>Parent POM for the logsquelcher project</description>
 
     <licenses>
         <license>
@@ -21,8 +21,8 @@
     </licenses>
 
     <modules>
-        <module>log-on-fail</module>
-        <module>log-on-fail-acceptance</module>
+        <module>logsquelcher</module>
+        <module>logsquelcher-acceptance</module>
     </modules>
 
     <properties>
