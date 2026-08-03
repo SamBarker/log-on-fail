@@ -1,15 +1,21 @@
 package nz.thebarkers.logonfail;
 
+import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.AbstractLogger;
 import org.slf4j.spi.LoggingEventAware;
 
+import java.util.Optional;
+
 class CapturingLogger extends AbstractLogger implements LoggingEventAware {
 
-    CapturingLogger(String name, org.slf4j.Logger realLogger) {
+    private final Optional<Logger> delegate;
+
+    CapturingLogger(String name, Logger realLogger) {
         this.name = name;
+        this.delegate = Optional.ofNullable(realLogger);
     }
 
     @Override
