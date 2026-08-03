@@ -34,7 +34,10 @@ class CapturingLoggerFactory implements ILoggerFactory {
         if (delegate == null) {
             return;
         }
-        Logger real = delegate.getLogger(event.getLoggerName());
+        forward(delegate.getLogger(event.getLoggerName()), event);
+    }
+
+    static void forward(Logger real, LoggingEvent event) {
         if (real instanceof LoggingEventAware lea) {
             lea.log(event);
         } else {

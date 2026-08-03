@@ -33,8 +33,9 @@ public class LogOnFailExtension implements BeforeEachCallback, TestWatcher, Para
         long start = startNanos.get();
         long end = System.nanoTime();
         startNanos.remove();
-        List<CapturedEvent> events = EventBuffer.extractWindow(start, end);
-        events.forEach(e -> replay(e.loggingEvent()));
+        if (!LogOnFailConfig.REALTIME_LOGGING) {
+            EventBuffer.extractWindow(start, end).forEach(e -> replay(e.loggingEvent()));
+        }
     }
 
     @Override

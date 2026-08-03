@@ -20,19 +20,27 @@ class CapturingLogger extends AbstractLogger implements LoggingEventAware {
 
     @Override
     public void log(LoggingEvent event) {
-        EventBuffer.capture(System.nanoTime(), new LogOnFailLoggingEvent(
+        var captured = new LogOnFailLoggingEvent(
                 event.getLevel(), name, event.getMessage(), event.getArgumentArray(),
                 event.getThrowable(), event.getTimeStamp() > 0 ? event.getTimeStamp() : System.currentTimeMillis(),
                 event.getThreadName() != null ? event.getThreadName() : Thread.currentThread().getName(),
-                event.getKeyValuePairs()));
+                event.getKeyValuePairs());
+        EventBuffer.capture(System.nanoTime(), captured);
+        if (LogOnFailConfig.REALTIME_LOGGING) {
+            delegate.ifPresent(d -> CapturingLoggerFactory.forward(d, captured));
+        }
     }
 
     @Override
     protected void handleNormalizedLoggingCall(Level level, Marker marker,
             String messagePattern, Object[] arguments, Throwable throwable) {
-        EventBuffer.capture(System.nanoTime(), new LogOnFailLoggingEvent(
+        var captured = new LogOnFailLoggingEvent(
                 level, name, messagePattern, arguments, throwable,
-                System.currentTimeMillis(), Thread.currentThread().getName(), null));
+                System.currentTimeMillis(), Thread.currentThread().getName(), null);
+        EventBuffer.capture(System.nanoTime(), captured);
+        if (LogOnFailConfig.REALTIME_LOGGING) {
+            delegate.ifPresent(d -> CapturingLoggerFactory.forward(d, captured));
+        }
     }
 
     @Override
