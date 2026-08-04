@@ -13,68 +13,68 @@ class LoggingEventAssertTest {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingEventAssertTest.class);
 
     @Test
-    void hasFormattedMessagePassesWhenMessageMatches(LogSquelcherExtension ext) {
+    void hasFormattedMessagePassesWhenMessageMatches(CapturedLogs logs) {
         // Given
         LOG.warn("plugin {} is deprecated", "myPlugin");
 
         // When / Then
         assertDoesNotThrow(() ->
-                assertThat(ext.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                         .hasFormattedMessage("plugin myPlugin is deprecated"));
     }
 
     @Test
-    void hasFormattedMessageFailsWhenMessageDoesNotMatch(LogSquelcherExtension ext) {
+    void hasFormattedMessageFailsWhenMessageDoesNotMatch(CapturedLogs logs) {
         // Given
         LOG.warn("actual message");
 
         // When / Then
         assertThrows(AssertionError.class, () ->
-                assertThat(ext.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                         .hasFormattedMessage("different message"));
     }
 
     @Test
-    void containsKeyValuePassesWhenKvPairPresent(LogSquelcherExtension ext) {
+    void containsKeyValuePassesWhenKvPairPresent(CapturedLogs logs) {
         // Given
         LOG.atWarn().addKeyValue("filterName", "myFilterDef").log("Plugin is deprecated");
 
         // When / Then
         assertDoesNotThrow(() ->
-                assertThat(ext.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                         .containsKeyValue("filterName", "myFilterDef"));
     }
 
     @Test
-    void containsKeyValueFailsWhenKvPairAbsent(LogSquelcherExtension ext) {
+    void containsKeyValueFailsWhenKvPairAbsent(CapturedLogs logs) {
         // Given
         LOG.atWarn().addKeyValue("filterName", "myFilterDef").log("Plugin is deprecated");
 
         // When / Then
         assertThrows(AssertionError.class, () ->
-                assertThat(ext.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                         .containsKeyValue("filterName", "wrongValue"));
     }
 
     @Test
-    void containsKeyValueFailsWhenNoKvPairsPresent(LogSquelcherExtension ext) {
+    void containsKeyValueFailsWhenNoKvPairsPresent(CapturedLogs logs) {
         // Given
         LOG.warn("plain message");
 
         // When / Then
         assertThrows(AssertionError.class, () ->
-                assertThat(ext.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                         .containsKeyValue("filterName", "anything"));
     }
 
     @Test
-    void assertionsAreChainable(LogSquelcherExtension ext) {
+    void assertionsAreChainable(CapturedLogs logs) {
         // Given
         LOG.atWarn().addKeyValue("k", "v").log("hello {}","world");
 
         // When / Then
         assertDoesNotThrow(() ->
-                assertThat(ext.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                         .hasFormattedMessage("hello world")
                         .containsKeyValue("k", "v"));
     }

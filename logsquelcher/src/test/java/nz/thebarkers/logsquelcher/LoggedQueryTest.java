@@ -13,12 +13,12 @@ class LoggedQueryTest {
     private static final Logger LOG = LoggerFactory.getLogger(LoggedQueryTest.class);
 
     @Test
-    void loggedReturnsFirstMatchingEventByLoggerAndLevel(LogSquelcherExtension ext) {
+    void loggedReturnsFirstMatchingEventByLoggerAndLevel(CapturedLogs logs) {
         // Given
         LOG.warn("expected warning");
 
         // When
-        LoggingEvent event = ext.logged(LoggedQueryTest.class, Level.WARN);
+        LoggingEvent event = logs.logged(LoggedQueryTest.class, Level.WARN);
 
         // Then
         assertEquals("expected warning", event.getMessage());
@@ -26,42 +26,42 @@ class LoggedQueryTest {
     }
 
     @Test
-    void loggedThrowsWhenNoEventsMatchLevel(LogSquelcherExtension ext) {
+    void loggedThrowsWhenNoEventsMatchLevel(CapturedLogs logs) {
         // Given
         LOG.info("info only");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.logged(LoggedQueryTest.class, Level.WARN));
+        assertThrows(AssertionError.class, () -> logs.logged(LoggedQueryTest.class, Level.WARN));
     }
 
     @Test
-    void loggedThrowsWhenNoEventsMatchLogger(LogSquelcherExtension ext) {
+    void loggedThrowsWhenNoEventsMatchLogger(CapturedLogs logs) {
         // Given
         LOG.warn("from this logger");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.logged(String.class, Level.WARN));
+        assertThrows(AssertionError.class, () -> logs.logged(String.class, Level.WARN));
     }
 
     @Test
-    void loggedThrowsWhenNothingCaptured(LogSquelcherExtension ext) {
+    void loggedThrowsWhenNothingCaptured(CapturedLogs logs) {
         // Given
 
         // When / Then
         AssertionError err = assertThrows(AssertionError.class,
-                () -> ext.logged(LoggedQueryTest.class, Level.WARN));
+                () -> logs.logged(LoggedQueryTest.class, Level.WARN));
         assertTrue(err.getMessage().contains("(none)"),
                 "failure message should say (none) when nothing captured, got: " + err.getMessage());
     }
 
     @Test
-    void loggedFailureMessageListsCapturedEvents(LogSquelcherExtension ext) {
+    void loggedFailureMessageListsCapturedEvents(CapturedLogs logs) {
         // Given
         LOG.info("something else was logged");
 
         // When
         AssertionError err = assertThrows(AssertionError.class,
-                () -> ext.logged(LoggedQueryTest.class, Level.WARN));
+                () -> logs.logged(LoggedQueryTest.class, Level.WARN));
 
         // Then
         assertTrue(err.getMessage().contains("something else was logged"),
@@ -69,33 +69,33 @@ class LoggedQueryTest {
     }
 
     @Test
-    void loggedWithoutLevelReturnsFirstMatchingEventAtAnyLevel(LogSquelcherExtension ext) {
+    void loggedWithoutLevelReturnsFirstMatchingEventAtAnyLevel(CapturedLogs logs) {
         // Given
         LOG.debug("debug message");
 
         // When
-        LoggingEvent event = ext.logged(LoggedQueryTest.class);
+        LoggingEvent event = logs.logged(LoggedQueryTest.class);
 
         // Then
         assertEquals("debug message", event.getMessage());
     }
 
     @Test
-    void loggedWithoutLevelThrowsWhenNothingCaptured(LogSquelcherExtension ext) {
+    void loggedWithoutLevelThrowsWhenNothingCaptured(CapturedLogs logs) {
         // Given
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.logged(LoggedQueryTest.class));
+        assertThrows(AssertionError.class, () -> logs.logged(LoggedQueryTest.class));
     }
 
     @Test
-    void loggedReturnsFirstWhenMultipleEventsMatch(LogSquelcherExtension ext) {
+    void loggedReturnsFirstWhenMultipleEventsMatch(CapturedLogs logs) {
         // Given
         LOG.warn("first warning");
         LOG.warn("second warning");
 
         // When
-        LoggingEvent event = ext.logged(LoggedQueryTest.class, Level.WARN);
+        LoggingEvent event = logs.logged(LoggedQueryTest.class, Level.WARN);
 
         // Then
         assertEquals("first warning", event.getMessage());
