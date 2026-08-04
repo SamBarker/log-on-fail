@@ -13,6 +13,10 @@
     <artifactId>logsquelcher-acceptance</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <central.publishing.skip>true</central.publishing.skip>
+    </properties>
+
     <name>logsquelcher-acceptance</name>
     <description>Acceptance tests for logsquelcher using maven-invoker-plugin</description>
 
