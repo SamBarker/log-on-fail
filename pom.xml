@@ -12,6 +12,8 @@
     <name>logsquelcher-parent</name>
     <description>Parent POM for the logsquelcher project</description>
 
+    <url>https://github.com/SamBarker/logsquelcher</url>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -19,6 +21,20 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>Sam Barker</name>
+            <url>https://github.com/SamBarker</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/SamBarker/logsquelcher.git</connection>
+        <developerConnection>scm:git:https://github.com/SamBarker/logsquelcher.git</developerConnection>
+        <url>https://github.com/SamBarker/logsquelcher</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <modules>
         <module>logsquelcher</module>
