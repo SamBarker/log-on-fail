@@ -1,4 +1,4 @@
-# log-on-fail
+# logsquelcher
 
 A JUnit 5 extension that silences log output during passing tests and replays it only on failure.
 
@@ -18,7 +18,7 @@ from a fixed shared pool, so thread-local capture misses exactly the events that
 
 ## How it works
 
-`log-on-fail` registers itself as the SLF4J provider and wraps the real logging backend (Logback,
+`logsquelcher` registers itself as the SLF4J provider and wraps the real logging backend (Logback,
 Log4j2, or `slf4j-simple` as a last resort). All log events from all threads are captured into a
 time-stamped global buffer.
 
@@ -37,7 +37,7 @@ normal console output. On success the events are silently discarded.
 ```xml
 <dependency>
     <groupId>nz.thebarkers</groupId>
-    <artifactId>log-on-fail</artifactId>
+    <artifactId>logsquelcher</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
@@ -62,7 +62,7 @@ needed.
 ### Per-class
 
 ```java
-@ExtendWith(LogOnFailExtension.class)
+@ExtendWith(LogSquelcherExtension.class)
 class MyTest { ... }
 ```
 
@@ -77,7 +77,7 @@ Inject the extension as a parameter to query captured events:
 
 ```java
 @Test
-void warningIsLoggedWhenPluginIsDeprecated(LogOnFailExtension ext) {
+void warningIsLoggedWhenPluginIsDeprecated(LogSquelcherExtension ext) {
     // exercise the code under test
     subject.doSomething();
 
@@ -114,13 +114,13 @@ Throws `AssertionError` if any matching event was captured, listing the offendin
 
 ## Backend compatibility
 
-`log-on-fail` wraps whichever SLF4J provider it finds. Preference order:
+`logsquelcher` wraps whichever SLF4J provider it finds. Preference order:
 
 1. Any real backend (Logback, Log4j2, etc.)
 2. `slf4j-simple` (bundled as fallback)
 
 When multiple providers are on the classpath SLF4J will warn about the ambiguity and pick one.
-In most Maven setups `log-on-fail` wins because it is a direct dependency. If your project declares
+In most Maven setups `logsquelcher` wins because it is a direct dependency. If your project declares
 Logback as a direct dependency and it takes precedence, pin the provider explicitly in Surefire:
 
 ```xml
@@ -129,7 +129,7 @@ Logback as a direct dependency and it takes precedence, pin the provider explici
     <artifactId>maven-surefire-plugin</artifactId>
     <configuration>
         <systemPropertyVariables>
-            <slf4j.provider>nz.thebarkers.logonfail.LogOnFailSLF4JProvider</slf4j.provider>
+            <slf4j.provider>nz.thebarkers.logsquelcher.LogSquelcherSLF4JProvider</slf4j.provider>
         </systemPropertyVariables>
     </configuration>
 </plugin>
