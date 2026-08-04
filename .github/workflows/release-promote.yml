@@ -1,0 +1,95 @@
+name: Promote Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'publish')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Read versions
+        id: versions
+        run: |
+          RELEASE=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          NEXT=$(grep -oP '(?<=<!-- next-dev-version: )[\w.-]+(?= -->)' \
+            <<< '${{ github.event.pull_request.body }}')
+          echo "release=${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+
+      - name: Guard against duplicate release
+        id: guard
+        run: |
+          RELEASE="${{ steps.versions.outputs.release }}"
+          if git tag -l "v${RELEASE}" | grep -q .; then
+            echo "Tag v${RELEASE} already exists — skipping publish, proceeding to next-dev PR"
+            echo "skip_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and publish to Maven Central
+        if: steps.guard.outputs.skip_publish == 'false'
+        run: mvn --batch-mode -P release deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Tag release
+        if: steps.guard.outputs.skip_publish == 'false'
+        run: |
+          RELEASE="${{ steps.versions.outputs.release }}"
+          git tag "v${RELEASE}" "${{ github.event.pull_request.merge_commit_sha }}"
+          git push origin "v${RELEASE}"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Open next development version PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASE="${{ steps.versions.outputs.release }}"
+          NEXT="${{ steps.versions.outputs.next }}"
+          git checkout -b "next-dev/${NEXT}"
+          mvn --batch-mode versions:set \
+            -DnewVersion="${NEXT}" \
+            -DprocessAllModules=true \
+            -DgenerateBackupPoms=false
+          git add -A
+          git commit -m "Prepare ${NEXT} development"
+          git push origin "next-dev/${NEXT}"
+          /usr/bin/gh pr create \
+            --base main \
+            --head "next-dev/${NEXT}" \
+            --title "Prepare ${NEXT} development" \
+            --body "Bump version to ${NEXT} following the ${RELEASE} release."
