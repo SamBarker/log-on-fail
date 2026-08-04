@@ -8,7 +8,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 /**
  * AssertJ assertion for {@link LoggingEvent} instances returned by
- * {@link LogSquelcherExtension#logged(Class, Level)} and {@link LogSquelcherExtension#logged(Class)}.
+ * {@link CapturedLogs#logged(Class, Level)} and {@link CapturedLogs#logged(Class)}.
  *
  * <p>Typical usage:
  * <pre>{@code

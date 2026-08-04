@@ -13,115 +13,115 @@ class LogSquelcherAssertionTest {
     private static final Logger LOG = LoggerFactory.getLogger(LogSquelcherAssertionTest.class);
 
     @Test
-    void extensionCanBeInjectedAsParameter(LogSquelcherExtension ext) {
+    void capturedLogsCanBeInjectedAsParameter(CapturedLogs logs) {
         // Given
 
         // When
 
         // Then
-        assertNotNull(ext);
+        assertNotNull(logs);
     }
 
     @Test
-    void loggedReturnsEventMatchingLoggerAndLevel(LogSquelcherExtension ext) {
+    void loggedReturnsEventMatchingLoggerAndLevel(CapturedLogs logs) {
         // Given
         LOG.warn("expected message");
 
         // When / Then
         assertDoesNotThrow(() ->
-                assertThat(ext.logged(LogSquelcherAssertionTest.class, Level.WARN))
+                assertThat(logs.logged(LogSquelcherAssertionTest.class, Level.WARN))
                         .hasFormattedMessage("expected message"));
     }
 
     @Test
-    void loggedFormatsMessageArguments(LogSquelcherExtension ext) {
+    void loggedFormatsMessageArguments(CapturedLogs logs) {
         // Given
         LOG.warn("hello {}", "world");
 
         // When / Then
-        assertThat(ext.logged(LogSquelcherAssertionTest.class, Level.WARN))
+        assertThat(logs.logged(LogSquelcherAssertionTest.class, Level.WARN))
                 .hasFormattedMessage("hello world");
     }
 
     @Test
-    void loggedThrowsWhenNoEventsMatchLogger(LogSquelcherExtension ext) {
+    void loggedThrowsWhenNoEventsMatchLogger(CapturedLogs logs) {
         // Given
         LOG.warn("from this class");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.logged(String.class, Level.WARN));
+        assertThrows(AssertionError.class, () -> logs.logged(String.class, Level.WARN));
     }
 
     @Test
-    void loggedThrowsWhenNoEventsMatchLevel(LogSquelcherExtension ext) {
+    void loggedThrowsWhenNoEventsMatchLevel(CapturedLogs logs) {
         // Given
         LOG.info("info message");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.logged(LogSquelcherAssertionTest.class, Level.WARN));
+        assertThrows(AssertionError.class, () -> logs.logged(LogSquelcherAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void loggedThrowsWhenNothingCaptured(LogSquelcherExtension ext) {
+    void loggedThrowsWhenNothingCaptured(CapturedLogs logs) {
         // Given
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.logged(LogSquelcherAssertionTest.class, Level.WARN));
+        assertThrows(AssertionError.class, () -> logs.logged(LogSquelcherAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void loggedWithoutLevelMatchesAnyLevel(LogSquelcherExtension ext) {
+    void loggedWithoutLevelMatchesAnyLevel(CapturedLogs logs) {
         // Given
         LOG.debug("debug message");
 
         // When / Then
-        assertThat(ext.logged(LogSquelcherAssertionTest.class))
+        assertThat(logs.logged(LogSquelcherAssertionTest.class))
                 .hasFormattedMessage("debug message");
     }
 
     @Test
-    void assertNotLoggedPassesWhenNothingLogged(LogSquelcherExtension ext) {
+    void assertNotLoggedPassesWhenNothingLogged(CapturedLogs logs) {
         // Given
 
         // When / Then
-        assertDoesNotThrow(() -> ext.assertNotLogged(LogSquelcherAssertionTest.class, Level.WARN));
+        assertDoesNotThrow(() -> logs.assertNotLogged(LogSquelcherAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void assertNotLoggedPassesForDifferentLogger(LogSquelcherExtension ext) {
+    void assertNotLoggedPassesForDifferentLogger(CapturedLogs logs) {
         // Given
         LOG.warn("from this class");
 
         // When / Then
-        assertDoesNotThrow(() -> ext.assertNotLogged(String.class, Level.WARN));
+        assertDoesNotThrow(() -> logs.assertNotLogged(String.class, Level.WARN));
     }
 
     @Test
-    void assertNotLoggedPassesForDifferentLevel(LogSquelcherExtension ext) {
+    void assertNotLoggedPassesForDifferentLevel(CapturedLogs logs) {
         // Given
         LOG.info("info message");
 
         // When / Then
-        assertDoesNotThrow(() -> ext.assertNotLogged(LogSquelcherAssertionTest.class, Level.WARN));
+        assertDoesNotThrow(() -> logs.assertNotLogged(LogSquelcherAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void assertNotLoggedFailsWhenMatchingEventExists(LogSquelcherExtension ext) {
+    void assertNotLoggedFailsWhenMatchingEventExists(CapturedLogs logs) {
         // Given
         LOG.warn("unexpected warning");
 
         // When / Then
-        assertThrows(AssertionError.class, () -> ext.assertNotLogged(LogSquelcherAssertionTest.class, Level.WARN));
+        assertThrows(AssertionError.class, () -> logs.assertNotLogged(LogSquelcherAssertionTest.class, Level.WARN));
     }
 
     @Test
-    void loggedFailureMessageListsCapturedEvents(LogSquelcherExtension ext) {
+    void loggedFailureMessageListsCapturedEvents(CapturedLogs logs) {
         // Given
         LOG.info("something else was logged");
 
         // When
         AssertionError err = assertThrows(AssertionError.class,
-                () -> ext.logged(LogSquelcherAssertionTest.class, Level.WARN));
+                () -> logs.logged(LogSquelcherAssertionTest.class, Level.WARN));
 
         // Then
         assertTrue(err.getMessage().contains("something else was logged"),
@@ -129,12 +129,12 @@ class LogSquelcherAssertionTest {
     }
 
     @Test
-    void loggedExposeKeyValuePairsFromFluentApi(LogSquelcherExtension ext) {
+    void loggedExposeKeyValuePairsFromFluentApi(CapturedLogs logs) {
         // Given
         LOG.atWarn().addKeyValue("filterName", "myFilterDef").log("Plugin is deprecated");
 
         // When / Then
-        assertThat(ext.logged(LogSquelcherAssertionTest.class, Level.WARN))
+        assertThat(logs.logged(LogSquelcherAssertionTest.class, Level.WARN))
                 .hasFormattedMessage("Plugin is deprecated")
                 .containsKeyValue("filterName", "myFilterDef");
     }
