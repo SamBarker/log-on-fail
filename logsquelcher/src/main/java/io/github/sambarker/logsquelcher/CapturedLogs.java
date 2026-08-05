@@ -1,4 +1,4 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.event.Level;

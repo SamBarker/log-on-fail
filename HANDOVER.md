@@ -16,7 +16,7 @@ stdout during every test run — hundreds of stack traces that trigger alarm eve
 the JUnit test thread's logs, missing filter-layer exceptions — exactly where the noise originates.
 
 **Why a standalone library**: the utility is not Kroxylicious-specific; a standalone repo under
-`nz.thebarkers` can be versioned independently and potentially adopted by other projects or promoted
+`io.github.sambarker` can be versioned independently and potentially adopted by other projects or promoted
 to the Kroxylicious org later.
 
 ---
@@ -86,7 +86,7 @@ LOG CAPTURE — MyTest#testFoo [FAILED]
 
 ## Project coordinates
 
-- **GAV**: `nz.thebarkers:logsquelcher:0.1.0-SNAPSHOT`
+- **GAV**: `io.github.sambarker:logsquelcher:0.1.0-SNAPSHOT`
 - **Java**: 17
 - **No Kroxylicious dependencies**
 
@@ -112,11 +112,11 @@ LOG CAPTURE — MyTest#testFoo [FAILED]
 /Users/sbarker/src/sambarker/logsquelcher/
 ├── pom.xml
 └── src/
-    ├── main/java/nz/thebarkers/logsquelcher/
+    ├── main/java/io/github/sambarker/logsquelcher/
     │   ├── LogSquelcherExtension.java
     │   ├── CapturingAppender.java
     │   └── CapturedEvent.java
-    └── test/java/nz/thebarkers/logsquelcher/
+    └── test/java/io/github/sambarker/logsquelcher/
         └── LogSquelcherExtensionTest.java
 ```
 

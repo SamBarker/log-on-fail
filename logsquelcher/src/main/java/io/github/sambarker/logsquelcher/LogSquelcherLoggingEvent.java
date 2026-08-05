@@ -1,4 +1,4 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
 import org.slf4j.Marker;
 import org.slf4j.event.KeyValuePair;

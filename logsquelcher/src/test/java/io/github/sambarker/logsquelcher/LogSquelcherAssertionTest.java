@@ -1,11 +1,11 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
-import static nz.thebarkers.logsquelcher.LoggingEventAssert.assertThat;
+import static io.github.sambarker.logsquelcher.LoggingEventAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LogSquelcherAssertionTest {

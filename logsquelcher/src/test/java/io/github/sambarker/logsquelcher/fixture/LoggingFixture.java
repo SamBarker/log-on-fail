@@ -1,6 +1,6 @@
-package nz.thebarkers.logsquelcher.fixture;
+package io.github.sambarker.logsquelcher.fixture;
 
-import nz.thebarkers.logsquelcher.LogSquelcherExtension;
+import io.github.sambarker.logsquelcher.LogSquelcherExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
