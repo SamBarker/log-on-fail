@@ -1,6 +1,6 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
-import nz.thebarkers.logsquelcher.fixture.SpyLogger;
+import io.github.sambarker.logsquelcher.fixture.SpyLogger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

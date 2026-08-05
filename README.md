@@ -36,7 +36,7 @@ normal console output. On success the events are silently discarded.
 
 ```xml
 <dependency>
-    <groupId>nz.thebarkers</groupId>
+    <groupId>io.github.sambarker</groupId>
     <artifactId>logsquelcher</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <scope>test</scope>
@@ -129,7 +129,7 @@ Logback as a direct dependency and it takes precedence, pin the provider explici
     <artifactId>maven-surefire-plugin</artifactId>
     <configuration>
         <systemPropertyVariables>
-            <slf4j.provider>nz.thebarkers.logsquelcher.LogSquelcherSLF4JProvider</slf4j.provider>
+            <slf4j.provider>io.github.sambarker.logsquelcher.LogSquelcherSLF4JProvider</slf4j.provider>
         </systemPropertyVariables>
     </configuration>
 </plugin>

@@ -1,4 +1,4 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;

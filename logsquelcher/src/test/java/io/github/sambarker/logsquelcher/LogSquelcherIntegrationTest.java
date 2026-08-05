@@ -1,10 +1,10 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import nz.thebarkers.logsquelcher.fixture.LoggingFixture;
+import io.github.sambarker.logsquelcher.fixture.LoggingFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

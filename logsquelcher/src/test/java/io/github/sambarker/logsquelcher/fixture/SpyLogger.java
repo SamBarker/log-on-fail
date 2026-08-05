@@ -1,4 +1,4 @@
-package nz.thebarkers.logsquelcher.fixture;
+package io.github.sambarker.logsquelcher.fixture;
 
 import org.slf4j.Marker;
 import org.slf4j.event.Level;

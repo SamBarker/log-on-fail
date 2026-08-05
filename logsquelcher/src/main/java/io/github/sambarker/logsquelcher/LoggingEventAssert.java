@@ -1,4 +1,4 @@
-package nz.thebarkers.logsquelcher;
+package io.github.sambarker.logsquelcher;
 
 import org.assertj.core.api.AbstractAssert;
 import org.slf4j.event.KeyValuePair;
@@ -12,7 +12,7 @@ import org.slf4j.helpers.MessageFormatter;
  *
  * <p>Typical usage:
  * <pre>{@code
- * import static nz.thebarkers.logsquelcher.LoggingEventAssert.assertThat;
+ * import static io.github.sambarker.logsquelcher.LoggingEventAssert.assertThat;
  *
  * assertThat(ext.logged(MyService.class, Level.WARN))
  *     .hasFormattedMessage("Plugin is deprecated")
