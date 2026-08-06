@@ -4,6 +4,17 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      merge-commit-sha:
+        description: 'Merge commit SHA of the release PR'
+        required: true
+      release-version:
+        description: 'Release version (e.g. 0.1.0)'
+        required: true
+      next-dev-version:
+        description: 'Next development version (e.g. 0.2.0-SNAPSHOT)'
+        required: true
 
 permissions:
   contents: write
@@ -12,15 +23,16 @@ permissions:
 jobs:
   promote:
     if: >
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'publish')
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'publish'))
     environment: release
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.merge-commit-sha || github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
 
       - name: Set up Java
@@ -34,14 +46,21 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
       - name: Verify GPG keyring
         run: gpg --list-secret-keys
+
       - name: Read versions
         id: versions
         run: |
-          RELEASE=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          NEXT=$(grep -oP '(?<=<!-- next-dev-version: )[\w.-]+(?= -->)' \
-            <<< '${{ github.event.pull_request.body }}')
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            RELEASE="${{ inputs.release-version }}"
+            NEXT="${{ inputs.next-dev-version }}"
+          else
+            RELEASE=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            NEXT=$(grep -oP '(?<=<!-- next-dev-version: )[\w.-]+(?= -->)' \
+              <<< '${{ github.event.pull_request.body }}')
+          fi
           echo "release=${RELEASE}" >> "$GITHUB_OUTPUT"
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
 
@@ -68,7 +87,8 @@ jobs:
         if: steps.guard.outputs.skip_publish == 'false'
         run: |
           RELEASE="${{ steps.versions.outputs.release }}"
-          git tag "v${RELEASE}" "${{ github.event.pull_request.merge_commit_sha }}"
+          REF="${{ github.event_name == 'workflow_dispatch' && inputs.merge-commit-sha || github.event.pull_request.merge_commit_sha }}"
+          git tag "v${RELEASE}" "${REF}"
           git push origin "v${RELEASE}"
 
       - name: Configure git
