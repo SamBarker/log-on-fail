@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
-import java.util.List;
-
 import static io.github.sambarker.logsquelcher.LoggingEventAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -70,28 +68,38 @@ class LoggingEventAssertTest {
     }
 
     @Test
-    void assertThatListSupportsCollectionAssertions(CapturedLogs logs) {
-        LOG.warn("first");
-        LOG.warn("second");
+    void assertThatListDoesNotAssertOnConstruction(CapturedLogs logs) {
+        assertDoesNotThrow(() -> assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN)));
+    }
 
-        assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
-                .isNotEmpty()
-                .hasSize(2);
+    @Test
+    void assertThatListIsEmptyPassesWhenNothingLogged(CapturedLogs logs) {
+        assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN)).isEmpty();
+    }
+
+    @Test
+    void assertThatListIsNotEmptyPassesWhenEventsPresent(CapturedLogs logs) {
+        LOG.warn("something");
+
+        assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN)).isNotEmpty();
     }
 
     @Test
     void assertThatListAllSatisfyReceivesLoggingEvents(CapturedLogs logs) {
-        LOG.warn("msg one");
-        LOG.warn("msg two");
+        LOG.warn("first");
+        LOG.warn("second");
 
         assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
-                .isNotEmpty()
+                .hasSize(2)
                 .allSatisfy(event -> assertEquals(Level.WARN, event.getLevel()));
     }
 
     @Test
-    void assertThatEmptyListPassesIsEmpty(CapturedLogs logs) {
+    void assertThatListSingleElementReturnsLoggingEventAssert(CapturedLogs logs) {
+        LOG.warn("only event");
+
         assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
-                .isEmpty();
+                .singleElement()
+                .hasFormattedMessage("only event");
     }
 }

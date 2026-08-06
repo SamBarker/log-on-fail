@@ -1,7 +1,6 @@
 package io.github.sambarker.logsquelcher;
 
 import org.assertj.core.api.AbstractAssert;
-import org.assertj.core.api.ListAssert;
 import org.slf4j.event.KeyValuePair;
 import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
@@ -32,8 +31,8 @@ public class LoggingEventAssert extends AbstractAssert<LoggingEventAssert, Loggi
         return new LoggingEventAssert(actual);
     }
 
-    public static ListAssert<LoggingEvent> assertThat(List<LoggingEvent> actual) {
-        return new ListAssert<>(actual);
+    public static LoggingEventsAssert assertThat(List<LoggingEvent> actual) {
+        return new LoggingEventsAssert(actual);
     }
 
     /**
