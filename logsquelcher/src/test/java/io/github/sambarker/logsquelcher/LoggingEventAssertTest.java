@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import java.util.Map;
+
 import static io.github.sambarker.logsquelcher.LoggingEventAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -92,6 +94,33 @@ class LoggingEventAssertTest {
         assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
                 .hasSize(2)
                 .allSatisfy(event -> assertEquals(Level.WARN, event.getLevel()));
+    }
+
+    @Test
+    void hasKeyValuesPassesWhenAllEntriesPresent(CapturedLogs logs) {
+        LOG.atWarn().addKeyValue("a", "1").addKeyValue("b", "2").log("msg");
+
+        assertDoesNotThrow(() ->
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
+                        .hasKeyValues(Map.of("a", "1", "b", "2")));
+    }
+
+    @Test
+    void hasKeyValuesPassesWhenMapIsSubsetOfPairs(CapturedLogs logs) {
+        LOG.atWarn().addKeyValue("a", "1").addKeyValue("b", "2").log("msg");
+
+        assertDoesNotThrow(() ->
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
+                        .hasKeyValues(Map.of("a", "1")));
+    }
+
+    @Test
+    void hasKeyValuesFailsWhenAnyEntryMissing(CapturedLogs logs) {
+        LOG.atWarn().addKeyValue("a", "1").log("msg");
+
+        assertThrows(AssertionError.class, () ->
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
+                        .hasKeyValues(Map.of("a", "1", "b", "2")));
     }
 
     @Test
