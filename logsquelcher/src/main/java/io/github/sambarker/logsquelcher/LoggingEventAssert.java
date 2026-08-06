@@ -6,6 +6,9 @@ import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * AssertJ assertion for {@link LoggingEvent} instances returned by
  * {@link CapturedLogs#logged(Class, Level)} and {@link CapturedLogs#logged(Class)}.
@@ -29,6 +32,10 @@ public class LoggingEventAssert extends AbstractAssert<LoggingEventAssert, Loggi
         return new LoggingEventAssert(actual);
     }
 
+    public static LoggingEventsAssert assertThat(List<LoggingEvent> actual) {
+        return new LoggingEventsAssert(actual);
+    }
+
     /**
      * Verifies that the SLF4J-formatted message (placeholders resolved) equals {@code expected}.
      */
@@ -39,6 +46,15 @@ public class LoggingEventAssert extends AbstractAssert<LoggingEventAssert, Loggi
         if (!formatted.equals(expected)) {
             failWithMessage("Expected formatted message to be <%s> but was <%s>", expected, formatted);
         }
+        return this;
+    }
+
+    /**
+     * Verifies that the event's key-value pairs contain all entries in {@code expected}.
+     */
+    public LoggingEventAssert hasKeyValues(Map<String, ?> expected) {
+        isNotNull();
+        expected.forEach(this::containsKeyValue);
         return this;
     }
 
