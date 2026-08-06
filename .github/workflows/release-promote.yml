@@ -34,7 +34,8 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
-
+      - name: Verify GPG keyring
+        run: gpg --list-secret-keys
       - name: Read versions
         id: versions
         run: |
