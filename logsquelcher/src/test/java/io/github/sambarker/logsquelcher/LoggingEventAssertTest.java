@@ -14,67 +14,55 @@ class LoggingEventAssertTest {
 
     @Test
     void hasFormattedMessagePassesWhenMessageMatches(CapturedLogs logs) {
-        // Given
         LOG.warn("plugin {} is deprecated", "myPlugin");
 
-        // When / Then
         assertDoesNotThrow(() ->
-                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .hasFormattedMessage("plugin myPlugin is deprecated"));
     }
 
     @Test
     void hasFormattedMessageFailsWhenMessageDoesNotMatch(CapturedLogs logs) {
-        // Given
         LOG.warn("actual message");
 
-        // When / Then
         assertThrows(AssertionError.class, () ->
-                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .hasFormattedMessage("different message"));
     }
 
     @Test
     void containsKeyValuePassesWhenKvPairPresent(CapturedLogs logs) {
-        // Given
         LOG.atWarn().addKeyValue("filterName", "myFilterDef").log("Plugin is deprecated");
 
-        // When / Then
         assertDoesNotThrow(() ->
-                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .containsKeyValue("filterName", "myFilterDef"));
     }
 
     @Test
     void containsKeyValueFailsWhenKvPairAbsent(CapturedLogs logs) {
-        // Given
         LOG.atWarn().addKeyValue("filterName", "myFilterDef").log("Plugin is deprecated");
 
-        // When / Then
         assertThrows(AssertionError.class, () ->
-                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .containsKeyValue("filterName", "wrongValue"));
     }
 
     @Test
     void containsKeyValueFailsWhenNoKvPairsPresent(CapturedLogs logs) {
-        // Given
         LOG.warn("plain message");
 
-        // When / Then
         assertThrows(AssertionError.class, () ->
-                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .containsKeyValue("filterName", "anything"));
     }
 
     @Test
     void assertionsAreChainable(CapturedLogs logs) {
-        // Given
-        LOG.atWarn().addKeyValue("k", "v").log("hello {}","world");
+        LOG.atWarn().addKeyValue("k", "v").log("hello {}", "world");
 
-        // When / Then
         assertDoesNotThrow(() ->
-                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .hasFormattedMessage("hello world")
                         .containsKeyValue("k", "v"));
     }
