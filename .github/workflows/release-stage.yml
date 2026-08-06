@@ -54,6 +54,11 @@ jobs:
             -DnewVersion="${RELEASE}" \
             -DprocessAllModules=true \
             -DgenerateBackupPoms=false
+          TIMESTAMP=$(TZ=UTC date "+%Y-%m-%dT%H:%M:%SZ")
+          mvn --batch-mode versions:set-property \
+            -Dproperty=project.build.outputTimestamp \
+            -DnewVersion="${TIMESTAMP}" \
+            -DgenerateBackupPoms=false
           git add -A
           git commit -m "Release ${RELEASE}"
           git push origin "release/${RELEASE}"
