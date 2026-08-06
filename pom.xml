@@ -106,7 +106,7 @@
                                 </goals>
                                 <configuration>
                                     <signer>bc</signer>
-                                    <keyname>80E18C45F58DD51B</keyname>
+                                    <defaultKeyring>false</defaultKeyring>
                                 </configuration>
                             </execution>
                         </executions>
