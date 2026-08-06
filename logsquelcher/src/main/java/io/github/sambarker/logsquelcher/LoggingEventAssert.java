@@ -1,10 +1,13 @@
 package io.github.sambarker.logsquelcher;
 
 import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.ListAssert;
 import org.slf4j.event.KeyValuePair;
 import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.MessageFormatter;
+
+import java.util.List;
 
 /**
  * AssertJ assertion for {@link LoggingEvent} instances returned by
@@ -27,6 +30,10 @@ public class LoggingEventAssert extends AbstractAssert<LoggingEventAssert, Loggi
 
     public static LoggingEventAssert assertThat(LoggingEvent actual) {
         return new LoggingEventAssert(actual);
+    }
+
+    public static ListAssert<LoggingEvent> assertThat(List<LoggingEvent> actual) {
+        return new ListAssert<>(actual);
     }
 
     /**

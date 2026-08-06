@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import java.util.List;
+
 import static io.github.sambarker.logsquelcher.LoggingEventAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -65,5 +67,31 @@ class LoggingEventAssertTest {
                 assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN).get(0))
                         .hasFormattedMessage("hello world")
                         .containsKeyValue("k", "v"));
+    }
+
+    @Test
+    void assertThatListSupportsCollectionAssertions(CapturedLogs logs) {
+        LOG.warn("first");
+        LOG.warn("second");
+
+        assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                .isNotEmpty()
+                .hasSize(2);
+    }
+
+    @Test
+    void assertThatListAllSatisfyReceivesLoggingEvents(CapturedLogs logs) {
+        LOG.warn("msg one");
+        LOG.warn("msg two");
+
+        assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                .isNotEmpty()
+                .allSatisfy(event -> assertEquals(Level.WARN, event.getLevel()));
+    }
+
+    @Test
+    void assertThatEmptyListPassesIsEmpty(CapturedLogs logs) {
+        assertThat(logs.logged(LoggingEventAssertTest.class, Level.WARN))
+                .isEmpty();
     }
 }
